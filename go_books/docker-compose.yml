@@ -1,0 +1,16 @@
+version: '3'
+services:
+  mysql-go:
+    image: mariadb:latest
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: go_book
+    # volumes:
+    #   - mysql-data:/var/lib/mysql
+    # expose:
+    #   - 3306
+    ports:
+      - 3306:3306
