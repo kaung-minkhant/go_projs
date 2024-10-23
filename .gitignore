@@ -2,3 +2,5 @@ go_server/go_server
 go_movies/go_movies
 go_books/cmd/main/main
 mongo_go/mongo_go
+go_postgres_stock/go_postgres_stock
+go_postgres_stock/.env
