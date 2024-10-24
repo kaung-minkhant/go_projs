@@ -5,3 +5,5 @@ mongo_go/mongo_go
 go_postgres_stock/go_postgres_stock
 go_postgres_stock/.env
 go_email_verifier/go_email_verifier
+go_slack_file/.env
+go_slack_file/go_slack_file
