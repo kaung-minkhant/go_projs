@@ -9,3 +9,5 @@ go_slack_file/.env
 go_slack_file/go_slack_file
 go_slack_age/.env
 go_slack_age/go_slack_age
+go_weather/.apiConfig
+go_weather/go_weather
