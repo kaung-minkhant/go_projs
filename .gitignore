@@ -11,3 +11,5 @@ go_slack_age/.env
 go_slack_age/go_slack_age
 go_weather/.apiConfig
 go_weather/go_weather
+go_discord_ping_bot/config.json
+go_discord_ping_bot/go_discord_ping_bot
