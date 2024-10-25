@@ -13,3 +13,5 @@ go_weather/.apiConfig
 go_weather/go_weather
 go_discord_ping_bot/config.json
 go_discord_ping_bot/go_discord_ping_bot
+go_pexels/.config
+go_pexels/go_pexels
