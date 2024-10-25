@@ -15,3 +15,5 @@ go_discord_ping_bot/config.json
 go_discord_ping_bot/go_discord_ping_bot
 go_pexels/.config
 go_pexels/go_pexels
+go_fiber_crm/go_fiber_crm
+go_fiber_crm/gorm.db
