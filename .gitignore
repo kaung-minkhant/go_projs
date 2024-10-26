@@ -19,3 +19,4 @@ go_fiber_crm/go_fiber_crm
 go_fiber_crm/gorm.db
 go_fiber_hrm/go_fiber_hrm
 go_lru_cache/go_lru_cache
+go_database/go_database
