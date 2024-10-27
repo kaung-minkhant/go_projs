@@ -54,7 +54,7 @@ func handleCreateBook(w http.ResponseWriter, r *http.Request) {
   hash := md5.New()
   io.WriteString(hash, book.Title + book.Author)
 
-  book.ID = string(hash.Sum(nil))
+  book.ID = fmt.Sprintf("%x", hash.Sum(nil))
 
   utils.RespondJson(w, book, http.StatusCreated)
 }

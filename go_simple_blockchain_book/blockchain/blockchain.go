@@ -89,7 +89,7 @@ func (block *Block) generateHash() {
   data := block.PrevHash + block.Timestamp + string(block.Position) + string(stringData)
 
   io.WriteString(hash, data)
-  block.Hash = string(hash.Sum(nil))
+  block.Hash = fmt.Sprintf("%x", hash.Sum(nil))
 }
 
 func (block *Block) validateHash(hash string) bool {
