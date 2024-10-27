@@ -25,3 +25,4 @@ go_quiz_csv/go_quiz_csv
 go_wit_wolfram_slack/.env
 go_wit_wolfram_slack/go_wit_wolfram_slack
 go_simple_blockchain_book/go_simple_blockchain_book
+go_reminder_cli/go_reminder_cli
