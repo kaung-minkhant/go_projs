@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -39,6 +40,7 @@ func main() {
 
 	// 1 the channel to hold the list of url to scrape
 	worklist := make(chan []string)
+	waitlist := make(chan int)
 
 	// 2. put base url into the list
 	go func() {
@@ -48,34 +50,92 @@ func main() {
 	// 3. seen map
 	seenMap := make(map[string]bool)
 
-	var i int
-	i++
-	for ; i > 0; i-- {
-		// 4. listen on the channel
-		links := <-worklist
+	go func(worklist chan []string, waitlist chan int, seenMap map[string]bool) {
+		for links := range worklist {
+			for _, link := range links {
+				if !seenMap[link] {
+					seenMap[link] = true
+          // time.Sleep(1 * time.Second)
+					waitlist <- 1
+					// fmt.Println("Spawning new go routine")
+          fmt.Printf("Crawling URL: %s\n", link)
+					go func(worklist chan []string, waitlist chan int, link string) {
+						foundLinks := crawl(link, baseUrl)
+						if foundLinks != nil {
+							worklist <- foundLinks
+							waitlist <- 0
+						} else {
+							waitlist <- -1
+						}
+					}(worklist, waitlist, link)
+				}
+			}
+		}
+	}(worklist, waitlist, seenMap)
 
-		// 5. for every links
-		for _, link := range links {
-			// 6. if not seen
-			if !seenMap[link] {
-        seenMap[link] = true
-				// 7. crawl
-				i++
-				go func(link, baseUrl string) {
-					fmt.Printf("Crawling URL: %s\n", link)
-					foundLinks := crawl(link, baseUrl)
-					if foundLinks != nil {
-						worklist <- foundLinks
-					}
-				}(link, baseUrl)
+	count := 0
+	for up := range waitlist {
+		if up == 1 {
+			count++
+		} else {
+			count--
+			if count == 0 && up != 0 {
+				fmt.Println("Closing channels")
+				close(worklist)
+				close(waitlist)
 			}
 		}
 	}
+
+	// var i int
+	// i++
+	// for ; i > 0; i-- {
+	// 4. listen on the channel
+	// wg := &sync.WaitGroup{}
+	// for links := range worklist {
+	// 	// links := <-worklist
+	// 	// 5. for every links
+	// 	for _, link := range links {
+	// 		// 6. if not seen
+	// 		if !seenMap[link] {
+	// 			seenMap[link] = true
+	// 			// 7. crawl
+	// 			// i++
+	// 			wg.Add(1)
+	// 			fmt.Println("Spawning one routine")
+	// 			go func(link, baseUrl string, wg *sync.WaitGroup) {
+	// 				fmt.Printf("Crawling URL: %s\n", link)
+	// 				foundLinks := crawl(link, baseUrl)
+	// 				if foundLinks != nil {
+	// 					worklist <- foundLinks
+	// 				} else {
+	// 					wg.Done()
+	// 					wg.Wait()
+	// 					// fmt.Println("Closing channel")
+	// 					close(worklist)
+	// 				}
+	// 			}(link, baseUrl, wg)
+	// 		}
+	// 	}
+	// }
 }
+
+// func goCrawl(urls []string, baseUrl string, seenMap map[string]bool) {
+// 	for _, url := range urls {
+// 		if !seenMap[url] {
+//       seenMap[url] = true
+// 			go func(url, baseUrl string) {
+// 				newUrls := crawl(url, baseUrl)
+// 				goCrawl(newUrls, baseUrl, seenMap)
+// 			}(url, baseUrl)
+// 		}
+// 	}
+// }
 
 var tokens = make(chan struct{}, 5)
 
 func crawl(link, baseUrl string) []string {
+	// return nil
 	// limiting the number of requests to 5 at the same time with buffered channel
 	tokens <- struct{}{}
 
