@@ -31,3 +31,5 @@ go_wrap_string/go_wrap_string
 go_guardian_scraper/go_guardian_scrapper
 go_sitemap_crawler/go_sitemap_crawler
 go_bing_scraper/go_bing_scraper
+go_stock_scraper/go_stock_scraper
+go_stock_scraper/stock.csv
