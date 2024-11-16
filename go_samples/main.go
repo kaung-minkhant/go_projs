@@ -1,14 +1,21 @@
 package main
 
 import (
+	"bytes"
+	"embed"
 	"flag"
 	"fmt"
-	"html/template"
-	"iter"
+	"io"
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
+	"os/exec"
+	"os/signal"
 	"slices"
 	"strings"
+	"syscall"
+	"text/template"
 	"time"
 
 	"github.com/kaung-minkhant/go_projs/go_samples/set"
@@ -21,27 +28,188 @@ func main() {
 	// fmt.Printf("a: %s\n", a)
 	// fmt.Printf("b: %s\n", b)
 	// receiverMain()
-	yieldMain()
+	signalMain()
+}
 
+func signalMain() {
+	sigs := make(chan os.Signal, 1)
+
+	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)
+
+	done := make(chan bool)
+
+	go func() {
+		sig := <-sigs
+		log.Println("Received signal: ", sig)
+		done <- true
+	}()
+
+	log.Println("Waiting for signal")
+	<-done
+	log.Println("Existing")
+}
+
+func execMain() {
+	binary, lookErr := exec.LookPath("ls")
+	if lookErr != nil {
+		log.Fatal(lookErr)
+	}
+
+	args := []string{"ls", "-a", "-l", "-h"}
+
+	env := os.Environ()
+
+	execErr := syscall.Exec(binary, args, env)
+	if execErr != nil {
+		log.Fatal(execErr)
+	}
+}
+
+func processMain() {
+	dateCmd := exec.Command("date") // -x will cause error
+	dateBytes, err := dateCmd.Output()
+	if err != nil {
+		switch e := err.(type) {
+		case *exec.Error:
+			log.Fatal("No executable")
+		case *exec.ExitError:
+			log.Fatal("Exited with error: ", e.ExitCode())
+		default:
+			log.Fatal("Exited unexpectedly")
+		}
+	}
+	// dateOut, _ := dateCmd.StdoutPipe()
+	// dateCmd.Start()
+	// dateBytes, _ := io.ReadAll(dateOut)
+	// dateCmd.Wait()
+	log.Println("> date")
+	log.Println(string(dateBytes))
+
+	grepCmd := exec.Command("grep", "hello")
+
+	grepIn, _ := grepCmd.StdinPipe()
+	grepOut, _ := grepCmd.StdoutPipe()
+
+	grepCmd.Start()
+	grepIn.Write([]byte("hello grep \n goodbye grep"))
+	grepIn.Close()
+	grepBytes, _ := io.ReadAll(grepOut)
+	grepCmd.Wait()
+
+	log.Println("> grep hell")
+	log.Println(string(grepBytes))
+
+	lsCmd := exec.Command("bash", "-c", "ls -a -l -h")
+	lsBytes, _ := lsCmd.Output()
+	log.Println("> ls -a -l -h")
+	log.Println(string(lsBytes))
+}
+
+func loggerMain() {
+	log.Println("log1")
+	log.SetFlags(log.Lmicroseconds | log.LstdFlags)
+	log.Println("log2")
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.Println("log3")
+
+	myLoggerFlag := log.LstdFlags
+	myLogger := log.New(os.Stdout, "my:", myLoggerFlag)
+	myLogger.Println("log4")
+
+	var buffer bytes.Buffer
+	bufferlog := log.New(&buffer, "buf:", myLoggerFlag)
+	bufferlog.Println("log5")
+
+	fmt.Println("from buffer log:", buffer.String())
+
+	jsonHandler := slog.NewJSONHandler(os.Stdout, nil)
+	myslog := slog.New(jsonHandler)
+	myslog.Info("log6")
+
+	myslog.Info("log7", "a", "b")
+
+}
+
+//go:embed static/*.txt
+var staticContents embed.FS
+
+func fileEmbedmain() {
+	http.Handle("/", http.FileServer(http.FS(staticContents)))
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func check(er error) {
+	if er != nil {
+		panic(er)
+	}
+}
+func fileMain() {
+	f, err := os.Open("sample.txt")
+	check(err)
+	b1 := make([]byte, 5)
+	n1, err := f.Read(b1)
+	check(err)
+	fmt.Printf("%d bytes: %s\n", n1, string(b1[:n1]))
+
+	o2, err := f.Seek(6, io.SeekStart)
+	check(err)
+	b2 := make([]byte, 2)
+	n1, err = f.Read(b2)
+	check(err)
+	fmt.Printf("%d bytes @ %d: ", n1, o2)
+	fmt.Printf("%v\n", string(b2[:n1]))
+}
+
+func templateMain() {
+	t1 := template.New("t1")
+	t1, err := t1.Parse("Value is {{.}}\n")
+	if err != nil {
+		panic(err)
+	}
+	t1.Execute(os.Stdout, "some text")
+
+	t1 = template.Must(t1.Parse("Value: {{.}}\n"))
+
+	t1.Execute(os.Stdout, "some text")
+
+	create := func(name, t string) *template.Template {
+		return template.Must(template.New(name).Parse(t))
+	}
+
+	t2 := create("t2", "Name: {{.FirstName}}\n")
+	t2.Execute(os.Stdout, struct{ FirstName string }{"Shunn"})
+
+	t3 := create("t3", "{{if . -}}       yes {{ else -}} no {{ end }}\n")
+	t3.Execute(os.Stdout, "heyyy")
+	t3.Execute(os.Stdout, "")
+	t4 := create("t4",
+		"Range: {{range .}}{{.}} {{end}}\n")
+	t4.Execute(os.Stdout,
+		[]string{
+			"Go",
+			"Rust",
+			"C++",
+			"C#",
+		})
 }
 
 func yieldMain2() {
-  
+
 }
 
-func PrintAllElementsPush[ E comparable ] (s *set.Set[E]) {
-  s.Push(func (v E) bool {
-    fmt.Println(v)
-    return true
-  })
+func PrintAllElementsPush[E comparable](s *set.Set[E]) {
+	s.Push(func(v E) bool {
+		fmt.Println(v)
+		return true
+	})
 }
 
-func PrintAllElementsPull[E comparable] (s *set.Set[E]) {
-  next, stop := s.Pull()
-  defer stop()
-  for v, ok := next(); ok; v, ok = next() {
-    fmt.Println(v)
-  }
+func PrintAllElementsPull[E comparable](s *set.Set[E]) {
+	next, stop := s.Pull()
+	defer stop()
+	for v, ok := next(); ok; v, ok = next() {
+		fmt.Println(v)
+	}
 }
 
 // func Union[E comparable](s1, s2 *set.Set[E]) *set.Set[E] {
@@ -58,24 +226,24 @@ func PrintAllElementsPull[E comparable] (s *set.Set[E]) {
 // }
 
 func yieldMain() {
-	fibo := func() iter.Seq[int] {
-		return func(yield func(int) bool) {
-			a, b := 1, 1
-			for {
-				if !yield(b) {
-					return
-				}
-				a, b = b, a+b
-			}
-		}
-	}
+	// fibo := func() iter.Seq[int] {
+	// 	return func(yield func(int) bool) {
+	// 		a, b := 1, 1
+	// 		for {
+	// 			if !yield(b) {
+	// 				return
+	// 			}
+	// 			a, b = b, a+b
+	// 		}
+	// 	}
+	// }
 
-  for n := range fibo() {
-    if n > 10 {
-      break
-    }
-    fmt.Println(n)
-  }
+	// for n := range fibo() {
+	//   if n > 10 {
+	//     break
+	//   }
+	//   fmt.Println(n)
+	// }
 }
 
 func Clone1[S ~[]E, E any](s S) S {
