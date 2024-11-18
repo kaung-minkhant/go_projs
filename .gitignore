@@ -35,3 +35,8 @@ go_stock_scraper/go_stock_scraper
 go_stock_scraper/stock.csv
 go_website_checker/go_website_checker
 gopl/gopl
+gopl/lissajous/lissajous
+gopl/lissajous/out.gif
+gopl/mandelbrot/mandlebrot.png
+gopl/server2/server2
+gopl/surface/surface.svg
