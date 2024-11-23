@@ -30,7 +30,7 @@ func main() {
       return
     }
     resp.Body.Close()
-    fmt.Fprintf(os.Stdout, " with status code %s\n", resp.Status)
+    // fmt.Fprintf(os.Stdout, " with status code %s\n", resp.Status)
 
     // fmt.Printf("Response for %s: %s\n", url, bytes)
 	}
