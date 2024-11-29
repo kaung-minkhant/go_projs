@@ -133,9 +133,6 @@ func save(url string) error {
 		return fmt.Errorf("cannot write to file: %s", err)
 	}
 
-	// fmt.Println("dir: ", dir)
-	// fmt.Println("fileName: ", fileName)
-	// fmt.Println("Ext: ", ext)
 	return nil
 }
 
@@ -177,10 +174,9 @@ func breathFirst(links []string, f func(url string) []string, pre func(url strin
 	}
 }
 
-// var prefixPattern = `^http://|^https://`
 
+// 
 func main() {
-	// pattern := regexp.MustCompile(prefixPattern)
 	f := func(link string) string {
 		parsed, err := url.Parse(link)
 		if err != nil {

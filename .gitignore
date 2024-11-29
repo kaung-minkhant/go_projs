@@ -47,3 +47,5 @@ gopl/linksave/linksave
 gopl/outline2/outline2
 gopl/xkcd/index.index
 go.dev/
+gopl/eval/eval
+gopl/eval/parse_.go
